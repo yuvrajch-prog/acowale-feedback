@@ -1,0 +1,12 @@
+{
+  "name": "acowale-crm-machine-test",
+  "version": "1.0.0",
+  "description": "Acowale CRM Machine Test by Candidate - Customer Feedback Platform & Analytics Dashboard",
+  "private": true,
+  "scripts": {
+    "dev:server": "cmd /c \"cd server && npm run dev\"",
+    "dev:client": "cmd /c \"cd client && npm run dev\"",
+    "build": "cmd /c \"cd server && npm run build\" && cmd /c \"cd client && npm run build\"",
+    "test": "cmd /c \"cd server && npm run test\""
+  }
+}

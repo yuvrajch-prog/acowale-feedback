@@ -1,0 +1,55 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+}
+
+enum FeedbackCategory {
+  BUG
+  FEATURE_REQUEST
+  UI
+  PERFORMANCE
+  GENERAL
+}
+
+enum FeedbackStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(ADMIN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Feedback {
+  id        String           @id @default(uuid())
+  name      String
+  email     String
+  category  FeedbackCategory
+  rating    Int
+  comment   String
+  status    FeedbackStatus   @default(OPEN)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  deletedAt DateTime?
+
+  @@index([category])
+  @@index([status])
+  @@index([createdAt])
+  @@map("feedback")
+}
