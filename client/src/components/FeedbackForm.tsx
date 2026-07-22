@@ -11,7 +11,10 @@ const CATEGORIES: { key: CategoryType; label: string; description: string; icon:
   { key: 'GENERAL', label: 'General / Other', description: 'General thoughts or general platform feedback', icon: '💬' },
 ];
 
-export const FeedbackForm: React.FC<{ onSuccessSubmit?: () => void }> = ({ onSuccessSubmit }) => {
+export const FeedbackForm: React.FC<{
+  onSuccessSubmit?: (msg: string) => void;
+  onError?: (msg: string) => void;
+}> = ({ onSuccessSubmit, onError }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [category, setCategory] = useState<CategoryType>('FEATURE_REQUEST');
@@ -20,40 +23,60 @@ export const FeedbackForm: React.FC<{ onSuccessSubmit?: () => void }> = ({ onSuc
   const [comment, setComment] = useState('');
 
   const [loading, setLoading] = useState(false);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSuccessMsg(null);
-    setErrorMsg(null);
 
-    if (!name.trim() || !email.trim() || !comment.trim()) {
-      setErrorMsg('Please fill in all required fields.');
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+    const trimmedComment = comment.trim();
+
+    if (!trimmedName || !trimmedEmail || !trimmedComment) {
+      if (onError) onError('Please fill in all required fields.');
+      return;
+    }
+
+    if (trimmedName.length < 2) {
+      if (onError) onError('Name must be at least 2 characters.');
+      return;
+    }
+
+    if (trimmedComment.length < 5) {
+      if (onError) onError('Feedback comment must be at least 5 characters.');
       return;
     }
 
     setLoading(true);
     try {
       const res = await submitFeedback({
-        name,
-        email,
+        name: trimmedName,
+        email: trimmedEmail,
         category,
         rating,
-        comment,
+        comment: trimmedComment,
       });
 
       if (res.success) {
-        setSuccessMsg('Thank you! Your feedback has been submitted successfully to Acowale product team.');
         setName('');
         setEmail('');
         setComment('');
         setRating(5);
-        if (onSuccessSubmit) onSuccessSubmit();
+        if (onSuccessSubmit) {
+          onSuccessSubmit('Thank you! Your feedback has been submitted successfully.');
+        }
       }
     } catch (err: any) {
-      const msg = err.response?.data?.error?.message || 'Failed to submit feedback. Please try again.';
-      setErrorMsg(msg);
+      const errorObj = err.response?.data?.error;
+      let msg = errorObj?.message || 'Failed to submit feedback. Please try again.';
+      
+      if (Array.isArray(errorObj?.details) && errorObj.details.length > 0) {
+        const detailMsgs = errorObj.details
+          .map((detail: any) => `${detail.field}: ${detail.message}`)
+          .join(', ');
+        msg = `${msg} (${detailMsgs})`;
+      }
+      
+      if (onError) onError(msg);
     } finally {
       setLoading(false);
     }
@@ -86,25 +109,9 @@ export const FeedbackForm: React.FC<{ onSuccessSubmit?: () => void }> = ({ onSuc
       {/* Main White Card Form */}
       <div className="pro-card rounded-2xl p-6 sm:p-8 bg-white border border-slate-200 shadow-sm">
 
-        {successMsg && (
-          <div className="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-start gap-3">
-            <CheckCircle2 className="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="font-semibold text-sm">Submission Received</p>
-              <p className="text-xs text-emerald-700 mt-0.5">{successMsg}</p>
-            </div>
-          </div>
-        )}
 
-        {errorMsg && (
-          <div className="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-rose-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="font-semibold text-sm">Error</p>
-              <p className="text-xs text-rose-700 mt-0.5">{errorMsg}</p>
-            </div>
-          </div>
-        )}
+
+
 
         <form onSubmit={handleSubmit} className="space-y-6">
 
@@ -212,6 +219,7 @@ export const FeedbackForm: React.FC<{ onSuccessSubmit?: () => void }> = ({ onSuc
               className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 text-xs transition resize-none"
               required
             />
+            <p className="text-[10px] text-slate-500 mt-1">Minimum 5 characters required.</p>
           </div>
 
           {/* Submit Button */}

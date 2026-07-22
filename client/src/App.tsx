@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Header } from './components/Header';
-import { FeedbackForm } from './components/FeedbackForm';
-import { AdminDashboard } from './components/AdminDashboard';
-import { AdminLoginModal } from './components/AdminLoginModal';
+import { AppRoutes } from './components/AppRoutes';
 import { getAdminToken, removeAdminToken, fetchAdminProfile } from './services/api';
 import { Heart, Globe, CheckCircle2, AlertTriangle, X } from 'lucide-react';
 
@@ -69,49 +67,12 @@ export function App() {
         />
 
         <main>
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <FeedbackForm onSuccessSubmit={() => showToast('Feedback submitted successfully!', 'success')} />
-              }
-            />
-            <Route
-              path="/admin/login"
-              element={
-                loadingProfile ? (
-                  <div className="flex-1 flex items-center justify-center py-20">
-                    <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                  </div>
-                ) : adminName ? (
-                  <Navigate to="/admin" replace />
-                ) : (
-                  <AdminLoginModal
-                    onLoginSuccess={(name) => {
-                      setAdminName(name);
-                      showToast(`Successfully logged in as ${name}`, 'success');
-                      navigate('/admin');
-                    }}
-                  />
-                )
-              }
-            />
-            <Route
-              path="/admin"
-              element={
-                loadingProfile ? (
-                  <div className="flex-1 flex items-center justify-center py-20">
-                    <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                  </div>
-                ) : adminName ? (
-                  <AdminDashboard />
-                ) : (
-                  <Navigate to="/admin/login" replace />
-                )
-              }
-            />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+          <AppRoutes
+            adminName={adminName}
+            loadingProfile={loadingProfile}
+            setAdminName={setAdminName}
+            showToast={showToast}
+          />
         </main>
       </div>
 
