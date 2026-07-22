@@ -7,7 +7,7 @@
 ## 🌟 Executive Summary
 
 **Acowale CRM** is a full-stack, production-ready feedback platform that enables:
-1. **Public End-Users (`UserWindow`)**: Submit structured feedback, choose categories, assign star ratings, and provide comments via an intuitive glassmorphic interface (No login required).
+1. **Public End-Users (`UserWindow`)**: Submit structured feedback, choose categories, assign star ratings, and provide comments via an intuitive, responsive interface (No login required).
 2. **Authenticated Admin Team (`AdminConsole`)**: Protected by JWT authentication (`admin@acowale.com`), allowing internal teams to monitor feedback metrics, view category distribution charts, analyze volume trends, search/filter submissions, triage issues, and export CSV data.
 
 ---
@@ -35,7 +35,7 @@
 
 | Layer | Technology | Key Highlights |
 | :--- | :--- | :--- |
-| **Frontend** | React 18, Vite, TypeScript, Tailwind CSS | Glassmorphic design system, public & protected views |
+| **Frontend** | React 18, Vite, TypeScript, Tailwind CSS | Clean and professional design system, public & protected views |
 | **Authentication**| HMAC-SHA256 JWT Admin Auth | Token-based auth for admin dashboard and triage routes |
 | **Analytics Charts** | Recharts | Category bar charts & daily volume trend area graphs |
 | **Backend API** | Node.js, Express, TypeScript | Layered architecture (Controllers, Services, Auth Guard) |
@@ -60,7 +60,7 @@
 - **Rating Selector**: Interactive 5-star rating with dynamic feedback text.
 - **Category Selector**: Bug Report, Feature Request, UI/UX, Performance, Other.
 - **Field Validation**: Name, valid work email, character limit counter.
-- **User Experience**: Glassmorphic UI with toast notifications.
+- **User Experience**: Polished UI with toast notifications.
 
 ### 2. Authenticated Admin Console (`AdminConsole`)
 - **Metric Cards**: Total feedback count, average rating score, open triage count, resolved items.

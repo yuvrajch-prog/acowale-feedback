@@ -89,6 +89,10 @@ export const AdminDashboard: React.FC = () => {
   const [newStatus, setNewStatus] = useState<StatusType>('OPEN');
   const [updating, setUpdating] = useState(false);
 
+  // Delete Modal state
+  const [itemToDelete, setItemToDelete] = useState<FeedbackItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
   // Timeline Filter states
   const [timeRange, setTimeRange] = useState<string>('this_week');
   const [customStartDate, setCustomStartDate] = useState<string>(() => {
@@ -180,18 +184,24 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleDeleteClick = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this feedback item? This is a soft-delete and the data will be preserved, but it will be hidden from the dashboard.')) {
-      return;
-    }
+  const handleDeleteClick = (item: FeedbackItem) => {
+    setItemToDelete(item);
+  };
+
+  const handleDeleteSubmit = async () => {
+    if (!itemToDelete) return;
+    setDeleting(true);
     try {
-      const res = await deleteFeedback(id);
+      const res = await deleteFeedback(itemToDelete.id);
       if (res.success) {
+        setItemToDelete(null);
         loadAnalytics();
         loadFeedback();
       }
     } catch (err) {
       alert('Failed to delete feedback item.');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -556,7 +566,7 @@ export const AdminDashboard: React.FC = () => {
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDeleteClick(item.id)}
+                        onClick={() => handleDeleteClick(item)}
                         className="px-2.5 py-1.5 rounded-md bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold text-xs flex items-center gap-1 transition border border-rose-200 cursor-pointer"
                       >
                         <Trash2 className="w-3 h-3 text-rose-600" />
@@ -637,6 +647,54 @@ export const AdminDashboard: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {itemToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full border border-slate-200 shadow-xl relative animate-in fade-in zoom-in-95 duration-150">
+            <button
+              onClick={() => setItemToDelete(null)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-start gap-3 mb-4">
+              <div className="p-2 bg-rose-50 rounded-lg text-rose-600 shrink-0">
+                <AlertTriangle className="w-5 h-5 animate-pulse" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900 mb-0.5">Delete Feedback Item</h3>
+                <p className="text-xs text-slate-500">Submitted by {itemToDelete.name}</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Are you sure you want to delete this feedback item? This is a soft-delete and the data will be preserved, but it will be hidden from the dashboard.
+              </p>
+
+              <div className="flex items-center gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setItemToDelete(null)}
+                  className="w-1/2 py-2 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-semibold transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={deleting}
+                  onClick={handleDeleteSubmit}
+                  className="w-1/2 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer transition shadow-sm hover:shadow-md"
+                >
+                  {deleting ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -67,7 +67,7 @@
 
 ### 9. Share one instance where AI disagreed with AI/you and why.
 - **Database Connection Strategy (SQLite vs Neon PostgreSQL)**:
-  - Initial AI suggestion recommended SQLite (`better-sqlite3`) for local zero-config testing. However, since the user explicitly requested live deployment on Neon DB free-tier PostgreSQL, I overrode the SQLite suggestion to use **Prisma ORM with PostgreSQL**. I kept an in-memory fallback layer inside the service so local execution and unit tests remain zero-dependency while production targets Neon Postgres.
+  - Initial AI suggestion recommended SQLite (`better-sqlite3`) for local zero-config testing. However, since live deployment on Neon DB free-tier PostgreSQL was required, the SQLite suggestion was overridden to use **Prisma ORM with PostgreSQL**. An in-memory fallback layer was maintained inside the service layer so local execution and unit tests remain zero-dependency while production targets Neon Postgres.
 
 ---
 
