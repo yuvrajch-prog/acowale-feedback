@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { FeedbackItem, AnalyticsSummary, FeedbackResponse, CategoryType, StatusType } from '../types';
+import { env } from '../config/env';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
+const API_BASE_URL = env.VITE_API_URL;
 
 export const getAdminToken = (): string | null => {
   return localStorage.getItem('acowale_admin_token');
