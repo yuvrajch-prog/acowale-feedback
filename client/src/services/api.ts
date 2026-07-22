@@ -81,6 +81,13 @@ export const updateFeedbackStatus = async (
   return res.data;
 };
 
+export const deleteFeedback = async (
+  id: string
+): Promise<{ success: boolean; data: FeedbackItem; message: string }> => {
+  const res = await api.delete(`/feedback/${id}`);
+  return res.data;
+};
+
 export const fetchAnalyticsSummary = async (
   signal?: AbortSignal
 ): Promise<{ success: boolean; data: AnalyticsSummary }> => {

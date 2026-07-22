@@ -4,6 +4,7 @@ import app from '../src/app';
 import { createAdminToken } from '../src/utils/auth';
 
 const adminToken = createAdminToken('admin@acowale.com', 'Acowale Lead Admin');
+let createdFeedbackId: string;
 
 describe('Acowale CRM Backend API Integration Tests', () => {
   it('GET /api/v1/health should return 200 OK with health metadata', async () => {
@@ -36,6 +37,7 @@ describe('Acowale CRM Backend API Integration Tests', () => {
     expect(res.status).toBe(201);
     expect(res.body.success).toBe(true);
     expect(res.body.data.name).toBe('Public Test Candidate');
+    createdFeedbackId = res.body.data.id;
   });
 
   it('GET /api/v1/feedback should reject request without admin auth token', async () => {
@@ -60,5 +62,36 @@ describe('Acowale CRM Backend API Integration Tests', () => {
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data.totalFeedback).toBeGreaterThanOrEqual(0);
+  });
+
+  it('DELETE /api/v1/feedback/:id should reject request without admin auth token', async () => {
+    const res = await request(app).delete(`/api/v1/feedback/${createdFeedbackId}`);
+    expect(res.status).toBe(401);
+  });
+
+  it('DELETE /api/v1/feedback/:id should soft-delete the feedback when admin token provided', async () => {
+    const res = await request(app)
+      .delete(`/api/v1/feedback/${createdFeedbackId}`)
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.deletedAt).toBeDefined();
+  });
+
+  it('GET /api/v1/feedback should not list the soft-deleted feedback item', async () => {
+    const res = await request(app)
+      .get('/api/v1/feedback')
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(res.status).toBe(200);
+    const list = res.body.data;
+    const found = list.find((item: any) => item.id === createdFeedbackId);
+    expect(found).toBeUndefined();
+  });
+
+  it('DELETE /api/v1/feedback/:id should return 404 for non-existent feedback ID', async () => {
+    const res = await request(app)
+      .delete('/api/v1/feedback/non-existent-uuid-1234')
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(res.status).toBe(404);
   });
 });

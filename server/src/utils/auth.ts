@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import { env } from '../config/env';
 
 export interface AdminPayload {
+  id?: string;
   name: string;
   email: string;
   role: 'ADMIN';
@@ -9,9 +10,10 @@ export interface AdminPayload {
   exp: number;
 }
 
-export function createAdminToken(email: string, name: string = 'Admin'): string {
+export function createAdminToken(email: string, name: string = 'Admin', id?: string): string {
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
   const payloadData: AdminPayload = {
+    id,
     name,
     email,
     role: 'ADMIN',

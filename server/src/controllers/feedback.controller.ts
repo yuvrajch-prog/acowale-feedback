@@ -48,3 +48,22 @@ export const updateFeedbackStatusHandler = async (req: Request, res: Response, n
     next(error);
   }
 };
+
+export const deleteFeedbackHandler = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+
+    const deleted = await FeedbackService.deleteFeedback(id);
+    if (!deleted) {
+      throw new AppError(`Feedback with ID '${id}' not found`, 404);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Feedback soft-deleted successfully',
+      data: deleted,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

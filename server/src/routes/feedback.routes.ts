@@ -3,6 +3,7 @@ import {
   createFeedbackHandler,
   listFeedbackHandler,
   updateFeedbackStatusHandler,
+  deleteFeedbackHandler,
 } from '../controllers/feedback.controller';
 import { validateBody, validateQuery } from '../middleware/validate';
 import {
@@ -36,6 +37,12 @@ router.patch(
   requireAdminAuth,
   validateBody(updateFeedbackStatusSchema),
   updateFeedbackStatusHandler
+);
+
+router.delete(
+  '/:id',
+  requireAdminAuth,
+  deleteFeedbackHandler
 );
 
 export default router;

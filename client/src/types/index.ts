@@ -11,6 +11,7 @@ export interface FeedbackItem {
   status: StatusType;
   createdAt: string;
   updatedAt: string;
+  deletedAt?: string | null;
 }
 
 export interface AnalyticsSummary {

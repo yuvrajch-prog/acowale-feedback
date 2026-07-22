@@ -50,4 +50,5 @@ export interface FeedbackItem {
   status: StatusType;
   createdAt: Date | string;
   updatedAt: Date | string;
+  deletedAt?: Date | string | null;
 }

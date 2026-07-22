@@ -119,7 +119,7 @@ export class FeedbackService {
 
     if (this.isDbAvailable) {
       try {
-        const whereClause: any = {};
+        const whereClause: any = { deletedAt: null };
         if (query.category) whereClause.category = query.category;
         if (query.status) whereClause.status = query.status;
         if (query.rating) whereClause.rating = query.rating;
@@ -158,7 +158,7 @@ export class FeedbackService {
     }
 
     // Fallback in-memory query evaluation
-    let filtered = [...memoryFeedbackStore];
+    let filtered = memoryFeedbackStore.filter((item) => !item.deletedAt);
     if (query.category) filtered = filtered.filter((item) => item.category === query.category);
     if (query.status) filtered = filtered.filter((item) => item.status === query.status);
     if (query.rating) filtered = filtered.filter((item) => item.rating === query.rating);
@@ -213,14 +213,16 @@ export class FeedbackService {
 
     if (this.isDbAvailable) {
       try {
-        const dbItems = await prisma.feedback.findMany();
+        const dbItems = await prisma.feedback.findMany({
+          where: { deletedAt: null },
+        });
         items = dbItems as unknown as FeedbackItem[];
       } catch (error) {
         this.isDbAvailable = false;
-        items = memoryFeedbackStore;
+        items = memoryFeedbackStore.filter((item) => !item.deletedAt);
       }
     } else {
-      items = memoryFeedbackStore;
+      items = memoryFeedbackStore.filter((item) => !item.deletedAt);
     }
 
     const totalFeedback = items.length;
@@ -285,5 +287,29 @@ export class FeedbackService {
       ],
       submissionTrend: trend,
     };
+  }
+
+  static async deleteFeedback(id: string): Promise<FeedbackItem | null> {
+    if (this.isDbAvailable) {
+      try {
+        const deleted = await prisma.feedback.update({
+          where: { id },
+          data: {
+            deletedAt: new Date(),
+          },
+        });
+        return deleted as unknown as FeedbackItem;
+      } catch (error: any) {
+        if (error.code === 'P2025') {
+          return null;
+        }
+        this.isDbAvailable = false;
+      }
+    }
+
+    const item = memoryFeedbackStore.find((f) => f.id === id);
+    if (!item) return null;
+    item.deletedAt = new Date().toISOString();
+    return item;
   }
 }

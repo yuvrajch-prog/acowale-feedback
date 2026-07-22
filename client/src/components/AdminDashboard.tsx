@@ -3,10 +3,10 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, AreaChart, Area
 } from 'recharts';
 import {
-  Search, Download, RefreshCw, Star, MessageSquare, Filter, Layers, CheckCircle2, Clock, AlertTriangle, Edit3, X
+  Search, Download, RefreshCw, Star, MessageSquare, Filter, Layers, CheckCircle2, Clock, AlertTriangle, Edit3, Trash2, X
 } from 'lucide-react';
 import axios from 'axios';
-import { fetchAnalyticsSummary, fetchFeedbackList, updateFeedbackStatus } from '../services/api';
+import { fetchAnalyticsSummary, fetchFeedbackList, updateFeedbackStatus, deleteFeedback } from '../services/api';
 import { FeedbackItem, AnalyticsSummary, StatusType } from '../types';
 import { StatusBadge, CategoryBadge } from './StatusBadge';
 
@@ -110,6 +110,21 @@ export const AdminDashboard: React.FC = () => {
       alert('Failed to update status.');
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const handleDeleteClick = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this feedback item? This is a soft-delete and the data will be preserved, but it will be hidden from the dashboard.')) {
+      return;
+    }
+    try {
+      const res = await deleteFeedback(id);
+      if (res.success) {
+        loadAnalytics();
+        loadFeedback();
+      }
+    } catch (err) {
+      alert('Failed to delete feedback item.');
     }
   };
 
@@ -427,16 +442,23 @@ export const AdminDashboard: React.FC = () => {
                     <td className="px-5 py-3.5">
                       <StatusBadge status={item.status} />
                     </td>
-                    <td className="px-5 py-3.5 text-right">
+                    <td className="px-5 py-3.5 text-right flex items-center justify-end gap-2">
                       <button
                         onClick={() => {
                           setSelectedItem(item);
                           setNewStatus(item.status);
                         }}
-                        className="px-2.5 py-1.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs flex items-center gap-1 ml-auto transition border border-slate-200"
+                        className="px-2.5 py-1.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs flex items-center gap-1 transition border border-slate-200 cursor-pointer"
                       >
                         <Edit3 className="w-3 h-3 text-blue-600" />
                         Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteClick(item.id)}
+                        className="px-2.5 py-1.5 rounded-md bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold text-xs flex items-center gap-1 transition border border-rose-200 cursor-pointer"
+                      >
+                        <Trash2 className="w-3 h-3 text-rose-600" />
+                        Delete
                       </button>
                     </td>
                   </tr>
