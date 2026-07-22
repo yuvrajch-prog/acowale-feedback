@@ -135,7 +135,7 @@ Visit **`http://localhost:5173`**! Click **Admin Console** tab -> **Auto-fill De
 ```bash
 cd server && npm run test
 ```
-*Runs 6/6 Vitest integration tests validating public submissions, authentication guards, invalid tokens, and analytics endpoints.*
+*Runs 10/10 Vitest integration tests validating public submissions, authentication guards, invalid tokens, soft deletions, and analytics endpoints.*
 
 ---
 

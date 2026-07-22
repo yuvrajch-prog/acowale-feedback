@@ -208,21 +208,64 @@ export class FeedbackService {
     return item;
   }
 
-  static async getAnalyticsSummary() {
+  static async getAnalyticsSummary(query?: { startDate?: string; endDate?: string }) {
     let items: FeedbackItem[] = [];
+    const whereClause: any = { deletedAt: null };
+
+    if (query?.startDate || query?.endDate) {
+      whereClause.createdAt = {};
+      if (query.startDate) {
+        whereClause.createdAt.gte = new Date(query.startDate);
+      }
+      if (query.endDate) {
+        const end = new Date(query.endDate);
+        if (query.endDate.length === 10) {
+          end.setUTCHours(23, 59, 59, 999);
+        }
+        whereClause.createdAt.lte = end;
+      }
+    }
 
     if (this.isDbAvailable) {
       try {
         const dbItems = await prisma.feedback.findMany({
-          where: { deletedAt: null },
+          where: whereClause,
         });
         items = dbItems as unknown as FeedbackItem[];
       } catch (error) {
         this.isDbAvailable = false;
-        items = memoryFeedbackStore.filter((item) => !item.deletedAt);
+        items = memoryFeedbackStore.filter((item) => {
+          if (item.deletedAt) return false;
+          if (query?.startDate) {
+            const startLimit = new Date(query.startDate);
+            if (new Date(item.createdAt) < startLimit) return false;
+          }
+          if (query?.endDate) {
+            const endLimit = new Date(query.endDate);
+            if (query.endDate.length === 10) {
+              endLimit.setUTCHours(23, 59, 59, 999);
+            }
+            if (new Date(item.createdAt) > endLimit) return false;
+          }
+          return true;
+        });
       }
     } else {
-      items = memoryFeedbackStore.filter((item) => !item.deletedAt);
+      items = memoryFeedbackStore.filter((item) => {
+        if (item.deletedAt) return false;
+        if (query?.startDate) {
+          const startLimit = new Date(query.startDate);
+          if (new Date(item.createdAt) < startLimit) return false;
+        }
+        if (query?.endDate) {
+          const endLimit = new Date(query.endDate);
+          if (query.endDate.length === 10) {
+            endLimit.setUTCHours(23, 59, 59, 999);
+          }
+          if (new Date(item.createdAt) > endLimit) return false;
+        }
+        return true;
+      });
     }
 
     const totalFeedback = items.length;
@@ -249,11 +292,25 @@ export class FeedbackService {
       if (statusCounts[item.status] !== undefined) statusCounts[item.status]++;
     });
 
-    // Recent daily trends (last 7 days)
+    // Generate daily trends dynamically between start and end dates in UTC
     const trendsMap: Record<string, number> = {};
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
+    let start = query?.startDate ? new Date(query.startDate) : new Date(Date.now() - 86400000 * 6);
+    let end = query?.endDate ? new Date(query.endDate) : new Date();
+
+    // Reset boundaries to UTC start/end of day
+    start.setUTCHours(0, 0, 0, 0);
+    end.setUTCHours(23, 59, 59, 999);
+
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    // Cap dynamic trends at 90 days to avoid performance overhead in charts
+    if (diffDays > 90) {
+      start = new Date(end.getTime() - 86400000 * 89);
+      start.setUTCHours(0, 0, 0, 0);
+    }
+
+    for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
       const dateStr = d.toISOString().split('T')[0];
       trendsMap[dateStr] = 0;
     }

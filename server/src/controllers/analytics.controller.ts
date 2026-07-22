@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import { FeedbackService } from '../services/feedback.service';
 
-export const getAnalyticsSummaryHandler = async (_req: Request, res: Response, next: NextFunction) => {
+export const getAnalyticsSummaryHandler = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const summary = await FeedbackService.getAnalyticsSummary();
+    const { startDate, endDate } = req.query as { startDate?: string; endDate?: string };
+    const summary = await FeedbackService.getAnalyticsSummary({ startDate, endDate });
     res.status(200).json({
       success: true,
       data: summary,

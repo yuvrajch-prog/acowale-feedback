@@ -18,6 +18,58 @@ const CATEGORY_COLORS: Record<string, string> = {
   GENERAL: '#64748b',
 };
 
+const formatDateLocal = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const getDateRange = (rangeType: string, customStart?: string, customEnd?: string) => {
+  const now = new Date();
+  let startDate = new Date();
+  let endDate = new Date();
+
+  switch (rangeType) {
+    case 'this_week': {
+      const day = now.getDay();
+      startDate.setDate(now.getDate() - day);
+      break;
+    }
+    case 'last_week': {
+      const day = now.getDay();
+      startDate.setDate(now.getDate() - day - 7);
+      endDate.setDate(now.getDate() - day - 1);
+      break;
+    }
+    case 'this_month': {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      break;
+    }
+    case 'last_month': {
+      startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+      break;
+    }
+    case 'custom': {
+      return {
+        startDate: customStart || formatDateLocal(new Date(now.getTime() - 86400000 * 7)),
+        endDate: customEnd || formatDateLocal(now),
+      };
+    }
+    default: {
+      startDate.setDate(now.getDate() - 6);
+      break;
+    }
+  }
+
+  return {
+    startDate: formatDateLocal(startDate),
+    endDate: formatDateLocal(endDate),
+  };
+};
+
 export const AdminDashboard: React.FC = () => {
   const [analytics, setAnalytics] = useState<AnalyticsSummary | null>(null);
   const [feedbackList, setFeedbackList] = useState<FeedbackItem[]>([]);
@@ -37,16 +89,28 @@ export const AdminDashboard: React.FC = () => {
   const [newStatus, setNewStatus] = useState<StatusType>('OPEN');
   const [updating, setUpdating] = useState(false);
 
+  // Timeline Filter states
+  const [timeRange, setTimeRange] = useState<string>('this_week');
+  const [customStartDate, setCustomStartDate] = useState<string>(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    return d.toISOString().split('T')[0];
+  });
+  const [customEndDate, setCustomEndDate] = useState<string>(() => {
+    return new Date().toISOString().split('T')[0];
+  });
+
   const loadAnalytics = useCallback(async (signal?: AbortSignal) => {
     try {
-      const res = await fetchAnalyticsSummary(signal);
+      const { startDate, endDate } = getDateRange(timeRange, customStartDate, customEndDate);
+      const res = await fetchAnalyticsSummary({ startDate, endDate }, signal);
       if (res.success) setAnalytics(res.data);
     } catch (err) {
       if (!axios.isCancel(err)) {
         console.error('Failed to fetch analytics summary', err);
       }
     }
-  }, []);
+  }, [timeRange, customStartDate, customEndDate]);
 
   const loadFeedback = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
@@ -156,7 +220,7 @@ export const AdminDashboard: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2">
             <Layers className="w-6 h-6 text-blue-600" />
@@ -167,7 +231,42 @@ export const AdminDashboard: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Time Range Filter Dropdown */}
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-slate-500 font-semibold">Timeline:</span>
+            <select
+              value={timeRange}
+              onChange={(e) => setTimeRange(e.target.value)}
+              className="bg-white border border-slate-300 text-slate-700 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-600 font-medium"
+            >
+              <option value="this_week">This Week</option>
+              <option value="last_week">Last Week</option>
+              <option value="this_month">This Month</option>
+              <option value="last_month">Last Month</option>
+              <option value="custom">Custom Date Range</option>
+            </select>
+          </div>
+
+          {/* Custom Date Pickers */}
+          {timeRange === 'custom' && (
+            <div className="flex items-center gap-1.5 text-xs">
+              <input
+                type="date"
+                value={customStartDate}
+                onChange={(e) => setCustomStartDate(e.target.value)}
+                className="bg-white border border-slate-300 text-slate-700 rounded-lg px-2 py-1 focus:outline-none focus:border-blue-600 font-medium"
+              />
+              <span className="text-slate-400">to</span>
+              <input
+                type="date"
+                value={customEndDate}
+                onChange={(e) => setCustomEndDate(e.target.value)}
+                className="bg-white border border-slate-300 text-slate-700 rounded-lg px-2 py-1 focus:outline-none focus:border-blue-600 font-medium"
+              />
+            </div>
+          )}
+
           <button
             onClick={handleRefresh}
             disabled={loading}

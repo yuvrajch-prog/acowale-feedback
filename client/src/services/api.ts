@@ -89,9 +89,10 @@ export const deleteFeedback = async (
 };
 
 export const fetchAnalyticsSummary = async (
+  params?: { startDate?: string; endDate?: string },
   signal?: AbortSignal
 ): Promise<{ success: boolean; data: AnalyticsSummary }> => {
-  const res = await api.get('/analytics/summary', { signal });
+  const res = await api.get('/analytics/summary', { params, signal });
   return res.data;
 };
 

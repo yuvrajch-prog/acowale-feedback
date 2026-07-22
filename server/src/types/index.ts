@@ -40,6 +40,11 @@ export const listFeedbackQuerySchema = z.object({
   order: z.enum(['asc', 'desc']).default('desc'),
 });
 
+export const analyticsQuerySchema = z.object({
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+});
+
 export interface FeedbackItem {
   id: string;
   name: string;
