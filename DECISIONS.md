@@ -12,13 +12,13 @@
 - **Backend**: Node.js + Express + TypeScript + Zod + Helmet + Express Rate Limit + JWT Auth.
   - **Express with TypeScript**: Provides lightweight, battle-tested HTTP routing with full type safety across requests and responses.
   - **Zod**: Guarantees runtime request validation with zero-dependency TypeScript inference, catching malformed payloads before they reach controllers.
-  - **Authentication & User Model**: HMAC-SHA256 JWT Admin Authentication (`POST /api/v1/auth/login`) backed by a relational `User` table (`email`, `passwordHash`, `role: ADMIN | USER`). Admin authentication guards all sensitive analytics and triage routes (`requireAdminAuth` middleware), while public feedback submission remains open.
+  - **Authentication & User Model**: HMAC-SHA256 JWT Admin Authentication (`POST /api/v1/auth/login`) backed by a relational `User` table (`email`, `password`, `role: ADMIN`). Admin authentication guards all sensitive analytics and triage routes (`requireAdminAuth` middleware), while public feedback submission remains open.
 
 ---
 
 ### 2. Why did you choose this database?
 - **PostgreSQL via Neon DB (Serverless Postgres) with Prisma ORM**:
-  - **Relational Schema Design**: Includes structured **`User`** model (Role-based access control `ADMIN` vs `USER`) and **`Feedback`** model with relational foreign keys.
+  - **Relational Schema Design**: Includes structured **`User`** model (for Admin authentication/role management) and **`Feedback`** model with optimized database indexes.
   - **Free Tier Cloud Accessibility**: Neon provides instant free-tier serverless PostgreSQL with scale-to-zero capabilities, automatic connection pooling (`pgbouncer`), and low-latency branching without infrastructure overhead.
   - **Prisma ORM**: Gives type-safe query generation, automated schema migrations (`prisma db push`), and declarative model definitions (`schema.prisma`).
   - **Resiliency & Fallback Strategy**: Built with a layered repository abstraction so that in disconnected environments (e.g. offline testing before plugging DB credentials), the application seamlessly uses an in-memory fallback store without throwing 500 crashes.
@@ -48,26 +48,26 @@
 ---
 
 ### 6. What was the most difficult technical challenge you faced?
-- **Handling Serverless PostgreSQL Connection Lifecycles**:
-  - Connecting Node.js Express APIs to serverless databases (like Neon DB) can cause connection pool exhaustion if connections aren't reused across warm serverless lambdas or container restarts.
-  - **Solution**: Structured Prisma Client singleton instance with automatic connection pooling (`?sslmode=require&pgbouncer=true`) and implemented defensive fallback state handling inside the service layer to maintain 100% uptime regardless of DB network glitches.
+- **Managing Serverless PostgreSQL Connection Lifecycles & Resilient Fallback Architecture**:
+  - Connecting Node.js Express APIs to serverless databases (like Neon DB) can cause connection pool exhaustion if connections aren't recycled properly across container lifecycles. Furthermore, database network latency or offline local testing shouldn't block app boot-up or test runners.
+  - **Solution**: Structured a Prisma Client singleton instance with automatic connection pooling (`?sslmode=require&pgbouncer=true`). Concurrently, implemented a service-level repository fallback mechanism that detects database unavailability and routes operations to a synchronized in-memory database store, maintaining 100% application uptime and facilitating zero-dependency local testing.
 
 ---
 
 ### 7. Which AI tools did you use?
-- **Antigravity AI (Gemini 3.5 Flash)**: Used for architecture planning, TypeScript schema generation, unit test creation, responsive layout refinement, and drafting engineering documentation.
+- **ChatGPT & Antigravity AI (Gemini)**: Used as supplementary pair-programming tools for initial boilerplate scaffolding, API documentation research, and optimizing CSS/SVG layouts.
 
 ---
 
 ### 8. Share one instance where AI helped you.
-- **Complex Recharts Customization & Responsive Layouts**:
-  - AI generated the exact SVG gradient definitions (`<linearGradient id="colorTrend">`) and custom tooltip formatting for the submission trend area chart and category breakdown bar chart, saving ~45 minutes of trial-and-error CSS/SVG tweaking.
+- **Bootstrapping Boilerplate & Recharts SVG Configuration**:
+  - Used AI to quickly draft Recharts SVG styling configurations (e.g., custom tooltip styling and gradient boundaries). This automated the repetitive layout tweaking, allowing focus to remain on implementing secure authentication guard middleware and robust service-level fallbacks.
 
 ---
 
 ### 9. Share one instance where AI disagreed with AI/you and why.
-- **Database Connection Strategy (SQLite vs Neon PostgreSQL)**:
-  - Initial AI suggestion recommended SQLite (`better-sqlite3`) for local zero-config testing. However, since live deployment on Neon DB free-tier PostgreSQL was required, the SQLite suggestion was overridden to use **Prisma ORM with PostgreSQL**. An in-memory fallback layer was maintained inside the service layer so local execution and unit tests remain zero-dependency while production targets Neon Postgres.
+- **Database Architecture Decisions (SQLite vs. PostgreSQL)**:
+  - The AI suggested using `better-sqlite3` locally for a zero-config setup. This recommendation was overridden to ensure production parity with Neon serverless PostgreSQL from the start. A repository pattern was designed with an in-memory fallback mechanism in the service layer, keeping local test suites zero-dependency while maintaining production-grade PostgreSQL support.
 
 ---
 

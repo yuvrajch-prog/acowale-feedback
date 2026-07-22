@@ -50,7 +50,7 @@
 - **Public Feedback Page**: Publicly accessible at `/` (No login required).
 - **Admin Console Login**:
   - **Email**: `admin@acowale.com`
-  - **Password**: `admin123` *(Or click "Auto-fill Demo Credentials" button inside the UI for 1-click evaluation!)*
+  - **Password**: `admin123`
 
 ---
 
@@ -58,7 +58,7 @@
 
 ### 1. Public Feedback Form (`UserWindow`)
 - **Rating Selector**: Interactive 5-star rating with dynamic feedback text.
-- **Category Selector**: Bug Report, Feature Request, UI/UX, Performance, Other.
+- **Category Selector**: Bug Report, Feature Request, UI & Ergonomics, Performance, General / Other.
 - **Field Validation**: Name, valid work email, character limit counter.
 - **User Experience**: Polished UI with toast notifications.
 
@@ -67,7 +67,7 @@
 - **Category Distribution Chart**: Interactive visual breakdown of feedback domains.
 - **Submission Trend Chart**: Time-series volume area chart.
 - **Data Table & Triage**: Real-time keyword search, category filter, status filter, rating filter.
-- **Status Management**: Quick action modal to change item status (`OPEN`, `IN_PROGRESS`, `RESOLVED`, `CLOSED`) and append internal admin notes.
+- **Status Management**: Quick action modal to change item status (`OPEN`, `IN_PROGRESS`, `RESOLVED`).
 - **Data Export**: One-click export of current feedback dataset to `.csv`.
 
 ### 3. Backend REST API Endpoints
@@ -75,7 +75,7 @@
 - `GET /api/v1/auth/me`: Verify current admin session token.
 - `POST /api/v1/feedback`: Submit feedback payload (Public, rate-limited).
 - `GET /api/v1/feedback`: Fetch feedback list (Requires Admin Bearer token).
-- `PATCH /api/v1/feedback/:id`: Update feedback status & append admin notes (Requires Admin Bearer token).
+- `PATCH /api/v1/feedback/:id`: Update feedback status (Requires Admin Bearer token).
 - `GET /api/v1/analytics/summary`: Aggregate analytics data (Requires Admin Bearer token).
 - `GET /api/v1/health`: System health check endpoint.
 
@@ -126,7 +126,7 @@ cd server && npm run dev
 cd client && npm run dev
 ```
 
-Visit **`http://localhost:5173`**! Click **Admin Console** tab -> **Auto-fill Demo Credentials** -> **Authenticate Admin**.
+Visit **`http://localhost:5173`**! Click the **Admin Console** tab and log in with the credentials provided above.
 
 ---
 
@@ -135,7 +135,7 @@ Visit **`http://localhost:5173`**! Click **Admin Console** tab -> **Auto-fill De
 ```bash
 cd server && npm run test
 ```
-*Runs 10/10 Vitest integration tests validating public submissions, authentication guards, invalid tokens, soft deletions, and analytics endpoints.*
+*Runs 12/12 Vitest integration tests validating public submissions, authentication guards, invalid tokens, soft deletions, and analytics endpoints.*
 
 ---
 
