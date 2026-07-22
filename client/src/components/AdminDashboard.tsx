@@ -116,6 +116,7 @@ export const AdminDashboard: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
+      const { startDate, endDate } = getDateRange(timeRange, customStartDate, customEndDate);
       const res = await fetchFeedbackList({
         search: search || undefined,
         category: categoryFilter || undefined,
@@ -123,6 +124,8 @@ export const AdminDashboard: React.FC = () => {
         rating: ratingFilter || undefined,
         page,
         limit: 10,
+        startDate,
+        endDate,
       }, signal);
       if (res.success) {
         setFeedbackList(res.data);
@@ -137,7 +140,7 @@ export const AdminDashboard: React.FC = () => {
         setLoading(false);
       }
     }
-  }, [search, categoryFilter, statusFilter, ratingFilter, page]);
+  }, [search, categoryFilter, statusFilter, ratingFilter, page, timeRange, customStartDate, customEndDate]);
 
   useEffect(() => {
     const controller = new AbortController();

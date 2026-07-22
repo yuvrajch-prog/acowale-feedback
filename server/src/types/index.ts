@@ -38,6 +38,8 @@ export const listFeedbackQuerySchema = z.object({
   limit: z.string().transform((val) => parseInt(val, 10)).default('10'),
   sortBy: z.enum(['createdAt', 'rating', 'category', 'status']).default('createdAt'),
   order: z.enum(['asc', 'desc']).default('desc'),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
 });
 
 export const analyticsQuerySchema = z.object({

@@ -112,6 +112,8 @@ export class FeedbackService {
     limit?: number;
     sortBy?: string;
     order?: string;
+    startDate?: string;
+    endDate?: string;
   }) {
     const page = query.page || 1;
     const limit = query.limit || 10;
@@ -123,6 +125,19 @@ export class FeedbackService {
         if (query.category) whereClause.category = query.category;
         if (query.status) whereClause.status = query.status;
         if (query.rating) whereClause.rating = query.rating;
+        if (query.startDate || query.endDate) {
+          whereClause.createdAt = {};
+          if (query.startDate) {
+            whereClause.createdAt.gte = new Date(query.startDate);
+          }
+          if (query.endDate) {
+            const end = new Date(query.endDate);
+            if (query.endDate.length === 10) {
+              end.setUTCHours(23, 59, 59, 999);
+            }
+            whereClause.createdAt.lte = end;
+          }
+        }
         if (query.search) {
           whereClause.OR = [
             { name: { contains: query.search, mode: 'insensitive' } },
@@ -158,7 +173,21 @@ export class FeedbackService {
     }
 
     // Fallback in-memory query evaluation
-    let filtered = memoryFeedbackStore.filter((item) => !item.deletedAt);
+    let filtered = memoryFeedbackStore.filter((item) => {
+      if (item.deletedAt) return false;
+      if (query.startDate) {
+        const startLimit = new Date(query.startDate);
+        if (new Date(item.createdAt) < startLimit) return false;
+      }
+      if (query.endDate) {
+        const endLimit = new Date(query.endDate);
+        if (query.endDate.length === 10) {
+          endLimit.setUTCHours(23, 59, 59, 999);
+        }
+        if (new Date(item.createdAt) > endLimit) return false;
+      }
+      return true;
+    });
     if (query.category) filtered = filtered.filter((item) => item.category === query.category);
     if (query.status) filtered = filtered.filter((item) => item.status === query.status);
     if (query.rating) filtered = filtered.filter((item) => item.rating === query.rating);

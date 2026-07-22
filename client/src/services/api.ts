@@ -65,6 +65,8 @@ export const fetchFeedbackList = async (
     limit?: number;
     sortBy?: string;
     order?: string;
+    startDate?: string;
+    endDate?: string;
   },
   signal?: AbortSignal
 ): Promise<FeedbackResponse> => {

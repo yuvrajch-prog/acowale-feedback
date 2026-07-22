@@ -108,4 +108,17 @@ describe('Acowale CRM Backend API Integration Tests', () => {
     expect(res.body.data.totalFeedback).toBeGreaterThanOrEqual(0);
     expect(Array.isArray(res.body.data.submissionTrend)).toBe(true);
   });
+
+  it('GET /api/v1/feedback with date range query params should return filtered list', async () => {
+    const res = await request(app)
+      .get('/api/v1/feedback')
+      .query({
+        startDate: new Date(Date.now() - 86400000 * 2).toISOString(),
+        endDate: new Date().toISOString(),
+      })
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(Array.isArray(res.body.data)).toBe(true);
+  });
 });
