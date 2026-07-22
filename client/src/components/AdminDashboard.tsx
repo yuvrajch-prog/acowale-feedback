@@ -227,7 +227,7 @@ export const AdminDashboard: React.FC = () => {
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2">
             <Layers className="w-6 h-6 text-blue-600" />
-            Admin Console & Analytics Dashboard
+            Dashboard
           </h1>
           <p className="text-xs text-slate-500 mt-1">
             Real-time customer feedback insights, category breakdown, and submission triage.

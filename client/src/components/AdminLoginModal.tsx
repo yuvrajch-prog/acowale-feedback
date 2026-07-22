@@ -20,7 +20,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ onLoginSuccess
     try {
       const res = await loginAdmin(email, password);
       if (res.success) {
-        onLoginSuccess(res.data.admin.email);
+        onLoginSuccess(res.data.admin.name || res.data.admin.email || "Admin");
       }
     } catch (err: any) {
       const msg = err.response?.data?.error?.message || 'Invalid admin email or password.';

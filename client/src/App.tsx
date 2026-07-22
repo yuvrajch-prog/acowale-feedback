@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Header } from './components/Header';
 import { FeedbackForm } from './components/FeedbackForm';
@@ -8,8 +9,9 @@ import { getAdminToken, removeAdminToken, fetchAdminProfile } from './services/a
 import { Heart, Globe, CheckCircle2, AlertTriangle, X } from 'lucide-react';
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<'user' | 'admin'>('user');
+  const navigate = useNavigate();
   const [adminName, setAdminName] = useState<string | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState<boolean>(true);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
@@ -42,6 +44,7 @@ export function App() {
           }
         }
       }
+      setLoadingProfile(false);
     };
     checkAdminAuth();
     return () => {
@@ -53,6 +56,7 @@ export function App() {
     removeAdminToken(); // Clears local storage token
     setAdminName(null);
     showToast('Successfully logged out.', 'success');
+    navigate('/admin/login');
   };
 
   return (
@@ -60,25 +64,54 @@ export function App() {
 
       <div>
         <Header
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
           adminName={adminName}
           onLogout={handleLogout}
         />
 
         <main>
-          {activeTab === 'user' ? (
-            <FeedbackForm onSuccessSubmit={() => showToast('Feedback submitted successfully!', 'success')} />
-          ) : adminName ? (
-            <AdminDashboard />
-          ) : (
-            <AdminLoginModal
-              onLoginSuccess={(name) => {
-                setAdminName(name);
-                showToast(`Successfully logged in as ${name}`, 'success');
-              }}
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <FeedbackForm onSuccessSubmit={() => showToast('Feedback submitted successfully!', 'success')} />
+              }
             />
-          )}
+            <Route
+              path="/admin/login"
+              element={
+                loadingProfile ? (
+                  <div className="flex-1 flex items-center justify-center py-20">
+                    <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                ) : adminName ? (
+                  <Navigate to="/admin" replace />
+                ) : (
+                  <AdminLoginModal
+                    onLoginSuccess={(name) => {
+                      setAdminName(name);
+                      showToast(`Successfully logged in as ${name}`, 'success');
+                      navigate('/admin');
+                    }}
+                  />
+                )
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                loadingProfile ? (
+                  <div className="flex-1 flex items-center justify-center py-20">
+                    <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                ) : adminName ? (
+                  <AdminDashboard />
+                ) : (
+                  <Navigate to="/admin/login" replace />
+                )
+              }
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
         </main>
       </div>
 
@@ -86,7 +119,7 @@ export function App() {
       <footer className="bg-white border-t border-slate-200 mt-16 py-6 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span>Acowale Machine Test Submission</span>
+            <span>Acowale CRM Machine Test Submission</span>
             <span className="text-blue-600 font-semibold">#TeamAcowale 🚀</span>
           </div>
 
